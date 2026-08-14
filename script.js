@@ -5,11 +5,11 @@ async function loadNewsletters() {
     const response = await fetch('newsletters.json');
     const newsletters = await response.json();
 
-    const sorted = [...newsletters].sort((a, b) => {
-      const dateA = new Date(a.date);
-      const dateB = new Date(b.date);
-      return dateB - dateA;
-    });
+    const numbered = [...newsletters]
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .map((newsletter, index) => ({ ...newsletter, edition: index + 1 }));
+
+    const sorted = numbered.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     renderNewsletters(sorted, listEl);
   } catch (error) {
@@ -29,7 +29,7 @@ function renderNewsletters(newsletters, listEl) {
 }
 
 function createCard(newsletter) {
-  const { title, date, image, description, link } = newsletter;
+  const { title, date, image, description, link, edition } = newsletter;
 
   return `
     <article class="newsletter-card" data-link="${link}">
@@ -38,6 +38,7 @@ function createCard(newsletter) {
       </div>
       <div class="newsletter-card__body">
         <div class="newsletter-card__meta">
+          <p class="newsletter-card__number">N.º ${String(edition).padStart(2, '0')}</p>
           <p class="newsletter-card__date">${formatDate(date)}</p>
         </div>
         <h2 class="newsletter-card__title">${title}</h2>
