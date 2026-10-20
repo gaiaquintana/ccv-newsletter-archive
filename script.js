@@ -1,3 +1,5 @@
+const PAGE_SIZE = 5;
+
 async function loadNewsletters() {
   const listEl = document.getElementById('newsletter-list');
 
@@ -24,8 +26,21 @@ function renderNewsletters(newsletters, listEl) {
     return;
   }
 
-  listEl.innerHTML = newsletters.map(createCard).join('');
+  const loadMoreEl = document.getElementById('load-more');
+  const loadMoreButton = loadMoreEl.querySelector('button');
+  let shown = 0;
+
+  function showNextPage() {
+    const nextPage = newsletters.slice(shown, shown + PAGE_SIZE);
+    listEl.insertAdjacentHTML('beforeend', nextPage.map(createCard).join(''));
+    shown += nextPage.length;
+    loadMoreEl.hidden = shown >= newsletters.length;
+  }
+
+  listEl.innerHTML = '';
   setupCardClicks(listEl);
+  loadMoreButton.addEventListener('click', showNextPage);
+  showNextPage();
 }
 
 function createCard(newsletter) {
@@ -50,13 +65,12 @@ function createCard(newsletter) {
 }
 
 function setupCardClicks(listEl) {
-  listEl.querySelectorAll('.newsletter-card').forEach((card) => {
-    card.addEventListener('click', (event) => {
-      if (event.target.closest('a')) {
-        return;
-      }
-      window.open(card.dataset.link, '_blank', 'noopener,noreferrer');
-    });
+  listEl.addEventListener('click', (event) => {
+    const card = event.target.closest('.newsletter-card');
+    if (!card || event.target.closest('a')) {
+      return;
+    }
+    window.open(card.dataset.link, '_blank', 'noopener,noreferrer');
   });
 }
 
